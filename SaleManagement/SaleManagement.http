@@ -1,0 +1,6 @@
+@SaleManagement_HostAddress = http://localhost:5131
+
+GET {{SaleManagement_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
