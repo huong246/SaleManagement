@@ -1,6 +1,3 @@
 namespace SaleManagement.Schemas;
 
-public class PaymentSchemas
-{
-    
-}
+public record PaymentRequest(Guid OrderId);

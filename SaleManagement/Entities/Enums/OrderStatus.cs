@@ -1,6 +1,12 @@
 namespace SaleManagement.Entities.Enums;
 
-public class OrderStatus
+public enum OrderStatus
 {
-    
+    pending,
+    processing,
+    completed,
+    in_transit, //dang tren duong giap
+    cancelled,
+    delivered,
+    returned,
 }

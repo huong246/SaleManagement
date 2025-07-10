@@ -1,6 +1,15 @@
-namespace SaleManagement.Schemas;
+using SaleManagement.Entities.Enums;
+using SaleManagement.Services;
 
-public class AccountSchemas
+namespace SaleManagement.Schemas
 {
+    public record CreateUserRequest(string Username, string Password, double Latitude, double Longitude);
+    public record LoginUserRequest(string Username, string Password);
+    public record LoginUserResult(
+        LoginUserResultType ResultType, 
+        string? AccessToken, 
+        string? RefreshToken
+    );
     
+  
 }

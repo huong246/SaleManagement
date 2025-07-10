@@ -1,6 +1,6 @@
 namespace SaleManagement.Entities.Enums;
 
-public enum RequestUpdateUserRole
+public enum RequestStatus
 {
     Pending,
     Approved,

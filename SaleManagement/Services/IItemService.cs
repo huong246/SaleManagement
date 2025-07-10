@@ -1,6 +1,47 @@
+using SaleManagement.Entities;
+using SaleManagement.Schemas;
+
 namespace SaleManagement.Services;
 
-public class IItemService
+public enum CreateItemResult
 {
+    Success,
+    DatabaseError,
+    ShopNotFound,
+    UserNotFound,
+    TokenInvalid,
+    StockInvalid,
+    PriceInvalid,
     
+}
+
+public enum UpdateItemResult
+{
+    Success,
+    DatabaseError,
+    ItemNotFound,
+    TokenInvalid,
+    StockInvalid,
+    ShopNotFound,
+    UserNotFound,
+    PriceInvalid,
+    ConcurrencyConflict,
+}
+
+public enum DeleteItemResult
+{
+    Success,
+    DatabaseError,
+    ItemNotFound,
+    TokenInvalid,
+    UserNotFound,
+    ShopNotFound,
+}
+
+public interface IItemService
+{
+    Task<CreateItemResult> CreateItem(CreateItemRequest request);
+    Task<UpdateItemResult> UpdateItem(UpdateItemRequest request);
+    Task<DeleteItemResult> DeleteItem(DeleteItemRequest request);
+    Task<IEnumerable<Item>> SearchItem(SearchItemRequest request);
 }

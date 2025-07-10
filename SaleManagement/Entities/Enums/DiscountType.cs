@@ -1,6 +1,13 @@
 namespace SaleManagement.Entities.Enums;
 
-public class DiscountType
+public enum VoucherTarger
 {
-    
+    Product,
+    Shipping,
+}
+
+public enum DiscountMethod
+{
+    Percentage,
+    FixedAmount,
 }

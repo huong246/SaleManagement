@@ -1,6 +1,3 @@
 namespace SaleManagement.Schemas;
 
-public class ShopSchemas
-{
-    
-}
+public record CreateShopRequest(string Name, double Latitude, double Longitude, int PreparationTime);
