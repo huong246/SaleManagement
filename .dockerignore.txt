@@ -1,0 +1,16 @@
+ 
+.idea/
+.vs/
+.vscode/
+
+ 
+**/bin
+**/obj
+
+ 
+riderModule.iml
+/_ReSharper.Caches/
+
+ 
+.git
+.gitignore
