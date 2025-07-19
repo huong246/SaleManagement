@@ -1,7 +1,9 @@
 using System.Text;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SaleManagement.Data;
 using SaleManagement.Entities;
+using SaleManagement.Hubs;
 using SaleManagement.Schemas;
 
 namespace SaleManagement.Services;
@@ -11,11 +13,13 @@ public class VoucherService : IVoucherService
     private const string Chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static readonly Random _random = new Random();
     private readonly ApiDbContext _dbContext;
+    private readonly IHubContext<NotificationHub> _notificationHubContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public VoucherService(ApiDbContext dbContext, IHttpContextAccessor httpContextAccessor)
+    public VoucherService(ApiDbContext dbContext, IHttpContextAccessor httpContextAccessor, IHubContext<NotificationHub> notificationHubContext)
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
+        _notificationHubContext = notificationHubContext;
     }
     
     public async Task<CreateVoucherResult> CreateVoucher(CreateVoucherRequest request)
@@ -36,24 +40,25 @@ public class VoucherService : IVoucherService
              return CreateVoucherResult.QuantityInvalid;
          }
 
-         if (request.ShopId != null)
+         if (request.ShopId.HasValue)
          {
-             var shop = await _dbContext.Shops.FirstOrDefaultAsync(s => s.Id == request.ShopId);
+             var shop = await _dbContext.Shops.FirstOrDefaultAsync(s => s.Id == request.ShopId && s.UserId == user.Id);
              if (shop == null)
              {
                  return CreateVoucherResult.ShopNotFound;
              }
          }
 
-         if (request.ItemId != null)
+         if (request.ItemId.HasValue)
          {
-             var item = await _dbContext.Items.FirstOrDefaultAsync(i => i.Id == request.ItemId);
+             var item = await _dbContext.Items.FirstOrDefaultAsync(i => i.Id == request.ItemId && i.ShopId == request.ShopId);
              if (item == null)
              {
                  return CreateVoucherResult.ItemNotFound;
              }
          }
 
+        
          var newVoucher = new Voucher();
          newVoucher.Id = Guid.NewGuid();
          bool ktr = false;
@@ -77,7 +82,7 @@ public class VoucherService : IVoucherService
          newVoucher.MaxDiscountAmount = request.MaxDiscountAmount;
          newVoucher.StartDate = request.ValidFrom;
          newVoucher.EndDate = request.ValidUntil;
-         if (newVoucher.StartDate >= DateTime.Now && newVoucher.EndDate <= DateTime.Now || newVoucher.Quantity<=0)
+         if ( newVoucher.EndDate <= DateTime.Now || newVoucher.Quantity<=0)
          {
              newVoucher.IsActive = false;
          }
@@ -174,7 +179,7 @@ public class VoucherService : IVoucherService
         voucher.MaxDiscountAmount = request.MaxDiscountAmount;
         voucher.StartDate = request.ValidFrom;
         voucher.EndDate = request.ValidUntil;
-        if (voucher.StartDate >= DateTime.Now && voucher.EndDate <= DateTime.Now || voucher.Quantity<=0)
+        if (voucher.EndDate <= DateTime.Now || voucher.Quantity<=0)
         {
             voucher.IsActive = false;
         }
@@ -190,6 +195,9 @@ public class VoucherService : IVoucherService
         }
         catch (DbUpdateConcurrencyException)
         {
+            var userMessage = $"Voucher {voucher.Id} has been changed.";
+            await _notificationHubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveMessage", userMessage);
+            await _dbContext.Entry(voucher).ReloadAsync();
             return UpdateVoucherResult.ConcurrencyConflict;       
         }
         catch (DbUpdateException)

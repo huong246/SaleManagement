@@ -1,7 +1,8 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SaleManagement.Entities;
-
+[Table("ReviewAndRatings")]
 public class ReviewAndRating 
 {
     public Guid Id { get; set; }

@@ -2,12 +2,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using SaleManagement.Data;
 using SaleManagement.Entities;
 using SaleManagement.Entities.Enums;
+using SaleManagement.Hubs;
 using SaleManagement.Schemas;
 
 namespace SaleManagement.Services;
@@ -18,12 +20,14 @@ public class AccountService : IAccountService
     private readonly IConfiguration _configuration; 
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMemoryCache _cache;
-    public AccountService(ApiDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMemoryCache cache)
+    private readonly IHubContext<NotificationHub> _notificationHubContext;
+    public AccountService(ApiDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMemoryCache cache, IHubContext<NotificationHub> notificationHubContext)
     {
         _dbContext = dbContext;
         _configuration = configuration; 
         _httpContextAccessor = httpContextAccessor;
         _cache = cache;
+        _notificationHubContext = notificationHubContext;
     }
     
     public async Task<CreateUserResult> CreateUser(CreateUserRequest request)
@@ -40,8 +44,10 @@ public class AccountService : IAccountService
             Username = request.Username,
             Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Balance = 0,
-            Latitude = request.Latitude,
-            Longitude = request.Longitude,
+            Fullname = request.FullName,
+            PhoneNumber = request.PhoneNumber,
+            Birthday = request.Birthday,
+            Gender = request.Gender,
             UserRoles = UserRole.Customer,
         };
         try
@@ -49,6 +55,8 @@ public class AccountService : IAccountService
 
             _dbContext.Users.Add(newUser);
             await _dbContext.SaveChangesAsync();
+            var userMessage = $"ban da dang ky thanh cong";
+            await _notificationHubContext.Clients.User(newUser.Id.ToString()).SendAsync("ReceiveMessage", userMessage);
             return CreateUserResult.Success;
         }
         catch (DbUpdateException)
@@ -131,10 +139,12 @@ public class AccountService : IAccountService
 
         var jti = _httpContextAccessor.HttpContext.User.FindFirstValue(JwtRegisteredClaimNames.Jti);
         var exp = _httpContextAccessor.HttpContext.User.FindFirstValue(JwtRegisteredClaimNames.Exp);
+
         if (jti != null && exp != null)
         {
-            var expiryTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(exp));
+            var expiryTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(exp));
             var cacheExpiry = expiryTime - DateTimeOffset.UtcNow;
+
             if (cacheExpiry > TimeSpan.Zero)
             {
                 _cache.Set(jti, "blacklisted", cacheExpiry);

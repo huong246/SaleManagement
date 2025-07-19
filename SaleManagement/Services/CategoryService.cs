@@ -13,8 +13,18 @@ public class CategoryService:ICategoryService
     {
         _dbContext = dbContext;
     }
+    
     public async Task<CategoryDto> CreateAsync(CreateCategoryRequest request)
     {
+        if (request.ParentCategoryId.HasValue)
+        {
+            var parentCategoryExists =
+                await _dbContext.Categories.AnyAsync(c => c.Id == request.ParentCategoryId.Value);
+            if (!parentCategoryExists)
+            {
+                throw new Exception("Parent category not found."); 
+            }
+        }
         var newCategory = new Category
         {
             Id = Guid.NewGuid(),
@@ -80,19 +90,40 @@ public class CategoryService:ICategoryService
         return new CategoryDto { Id = category.Id, Name = category.Name, Description = category.Description };
     }
 
-    public async Task<bool> UpdateAsync(Guid id, UpdateCategoryRequest request)
+    public async Task<UpdateCategoryResult> UpdateAsync(Guid id, UpdateCategoryRequest request)
     {
+       
         var category = await _dbContext.Categories.FindAsync(id);
         if (category == null)
         {
-            return false;
+            return UpdateCategoryResult.CategoryNotFound;
         }
-
+        if (request.ParentCategoryId.HasValue)
+        {
+            if (request.ParentCategoryId.Value == category.Id)
+            {
+                return UpdateCategoryResult.CategoryNotItSelf;
+            }
+            var parentCategoryExists =
+                await _dbContext.Categories.AnyAsync(c => c.Id == request.ParentCategoryId.Value);
+            if (!parentCategoryExists)
+            {
+                return UpdateCategoryResult.CategoryNotParent;
+            }
+        }
         category.Name = request.Name;
         category.Description = request.Description;
         category.ParentCategoryId = request.ParentCategoryId;
-
-        await _dbContext.SaveChangesAsync();
-        return true;
+        try
+        {
+            _dbContext.Categories.Update(category);
+            await _dbContext.SaveChangesAsync();
+            return UpdateCategoryResult.Success;
+        }
+        catch (DbUpdateException)
+        {
+            return UpdateCategoryResult.DatabaseError;
+        }
+        
     }
 }

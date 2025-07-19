@@ -83,9 +83,17 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<ISellerRequestService, SellerRequestService>();
 builder.Services.AddScoped<ICategoryService, CategoryService > ();
 builder.Services.AddScoped<ISuggestionService, SuggestionService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ISellerService, SellerService>();
+builder.Services.AddScoped<IMomoPaymentService, MomoService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<IShippingService, ShippingService>();
+builder.Services.AddScoped<IItemImageService, ItemImageService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHostedService<VoucherUpdateStatusService>();
 builder.Services.AddMemoryCache();
 
+builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor(); //dang ky cho phep truy cap vao HttpContext
 
 var app = builder.Build();
@@ -112,10 +120,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseAuthorization();
 
 app.UseMiddleware<JwtBlacklistMiddleware>(); 
 app.MapControllers();
+app.MapHub<SaleManagement.Hubs.NotificationHub>("/notificationHub");
+app.MapHub<SaleManagement.Hubs.ChatHub>("/chatHub");
 
 app.Run();

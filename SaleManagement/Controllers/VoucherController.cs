@@ -39,7 +39,7 @@ public class VoucherController : ControllerBase
         };
     }
     
-    [HttpPost("delete_voucher")]
+    [HttpDelete("delete_voucher")]
     [Authorize(Roles = $"{nameof(UserRole.Seller)}, {nameof(UserRole.Admin)}")]
     public async Task<IActionResult> DeleteVoucher([FromBody] DeleteVoucherRequest request)
     {

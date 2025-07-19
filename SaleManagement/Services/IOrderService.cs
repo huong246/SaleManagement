@@ -30,9 +30,36 @@ public enum UpdateOrderStatusResult
     
 }
 
+public enum CancelOrderResult
+{
+    Success,
+    OrderNotFound,
+    NotAllowed,
+    DatabaseError,
+    TokenInvalid,
+    UserNotFound,
+    AuthorizeFailed,
+}
+
+public enum RequestReturnResult
+{
+    Success,
+    OrderNotFound,
+    NotAllowed,
+    DatabaseError,
+    TokenInvalid,
+    UserNotFound,
+    AuthorizeFailed,
+}
+
+ 
+
 public interface IOrderService
 {
     Task<CreateOrderResult> CreateOrder(CreateOrderRequest request);
     Task<UpdateOrderStatusResult> UpdateOrderStatus(UpdateOrderStatusRequest request);
-    Task<IEnumerable<OrderHistory>> GetOrderHistoryAsync(GetOrderHistoryAsyncRequest request);
+    Task<CancelOrderResult> CancelOrder(CancelOrderRequest request);
+    Task<RequestReturnResult> RequestReturn(RequestReturnRequest request);
+    Task<IEnumerable<OrderHistory>> GetOrderHistoryAsync(Guid orderId);
+    Task<bool> ProcessPayoutForSuccessfulOrder(ProcessPayoutForSuccessfulOrderRequest request);
 }

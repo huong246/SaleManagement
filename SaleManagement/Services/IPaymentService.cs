@@ -2,6 +2,14 @@ using SaleManagement.Schemas;
 
 namespace SaleManagement.Services;
 
+public enum CashInResult
+{
+    Success, 
+    DatabaseError,
+    UserNotFound,
+    TokenInvalid,
+    CashInAmountInvalid,
+}
 public enum PaymentResult
 {
     Success,
@@ -16,5 +24,7 @@ public enum PaymentResult
 }
 public interface IPaymentService
 {
+    Task<CashInResult> CashIn(CashInRequest request);
     Task<PaymentResult> Payment(PaymentRequest request);
+   
 }

@@ -13,7 +13,7 @@ public enum IpnProcessResult
     Error
 }
 
-public interface IPaymentGateWayService
+public interface IMomoPaymentService
 {
     Task<MomoPaymentResponse> CreateMomoPaymentAsync(Order order);
     Task<IpnProcessResult> ProcessIpnResponseAsync(JsonElement body);

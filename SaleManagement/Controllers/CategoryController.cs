@@ -44,8 +44,17 @@ public class CategoryController:ControllerBase
     [Authorize(Roles = nameof(UserRole.Admin))] // Chỉ Admin được sửa Category
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryRequest request)
     {
-        var result = await _categoryService.UpdateAsync(id, request);
-        return result ? NoContent() : NotFound();
+            var result = await _categoryService.UpdateAsync(id, request);
+
+            return result switch
+            {
+                UpdateCategoryResult.Success => Ok("Update successful"),
+                UpdateCategoryResult.CategoryNotFound => NotFound("Category not found"),
+                UpdateCategoryResult.CategoryNotItSelf => BadRequest("Category not it self"),
+                UpdateCategoryResult.CategoryNotParent => BadRequest("Category not parent"),
+                _ => StatusCode(500, "An unexpected error occurred while update")
+            };
+
     }
 
     [HttpDelete("{id}")]

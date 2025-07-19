@@ -4,6 +4,7 @@ using SaleManagement.Entities.Enums;
 
 namespace SaleManagement.Entities;
 
+[Table("CategorySuggestions")]
 public class CategorySuggestion
 {
     [Key]

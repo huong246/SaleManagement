@@ -12,7 +12,7 @@ public enum CreateItemResult
     TokenInvalid,
     StockInvalid,
     PriceInvalid,
-    
+    CategoryNotFound,
 }
 
 public enum UpdateItemResult
@@ -25,6 +25,7 @@ public enum UpdateItemResult
     ShopNotFound,
     UserNotFound,
     PriceInvalid,
+
     ConcurrencyConflict,
 }
 
@@ -35,7 +36,8 @@ public enum DeleteItemResult
     ItemNotFound,
     TokenInvalid,
     UserNotFound,
-    ShopNotFound,
+    ShopNotOwner,
+    UserNotPermission,
 }
 
 public interface IItemService

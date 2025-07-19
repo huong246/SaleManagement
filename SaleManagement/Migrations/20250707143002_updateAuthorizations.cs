@@ -15,14 +15,14 @@ namespace SaleManagement.Migrations
                 name: "Role",
                 table: "Users",
                 type: "INTEGER",
-                nullable: false,
+                nullable: true,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<Guid>(
                 name: "CategoryId",
                 table: "Items",
                 type: "TEXT",
-                nullable: false,
+                nullable: true,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
 
             migrationBuilder.CreateTable(

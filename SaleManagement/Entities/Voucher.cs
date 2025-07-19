@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using SaleManagement.Entities.Enums;
 
 namespace SaleManagement.Entities;
-
+[Table("Vouchers")]
 public class Voucher
 {
     public Guid Id { get; set; }

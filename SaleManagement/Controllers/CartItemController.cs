@@ -52,7 +52,7 @@ public class CartItemController : ControllerBase
         };
     }
 
-    [HttpPost("delete_item_from_cart")]
+    [HttpDelete("delete_item_from_cart")]
     [Authorize(Roles = nameof(UserRole.Customer))]
     public async Task<IActionResult> DeleteItemFromCart([FromBody] DeleteItemFromCartRequest request)
     {

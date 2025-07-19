@@ -1,7 +1,9 @@
-using System.Runtime.InteropServices.JavaScript;
+using System.ComponentModel.DataAnnotations.Schema;
+using SaleManagement.Entities.Enums;
 
-namespace SaleManagement.Entities.Enums;
+namespace SaleManagement.Entities;
 
+[Table("SellerUpgradeRequests")]
 public class SellerUpgradeRequest
 {
     public Guid Id { get; set; }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SaleManagement.Data;
+using SaleManagement.Entities;
 using SaleManagement.Entities.Enums;
 
 namespace SaleManagement.Services;

@@ -1,3 +1,4 @@
+using SaleManagement.Entities;
 using SaleManagement.Entities.Enums;
 
 namespace SaleManagement.Services;

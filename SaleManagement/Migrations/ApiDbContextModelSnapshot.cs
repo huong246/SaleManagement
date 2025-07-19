@@ -15,7 +15,7 @@ namespace SaleManagement.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.6");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.7");
 
             modelBuilder.Entity("SaleManagement.Entities.CartItem", b =>
                 {
@@ -94,29 +94,21 @@ namespace SaleManagement.Migrations
                     b.ToTable("CategorySuggestions");
                 });
 
-            modelBuilder.Entity("SaleManagement.Entities.Enums.SellerUpgradeRequest", b =>
+            modelBuilder.Entity("SaleManagement.Entities.Conversation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("RequestedAt")
+                    b.Property<Guid>("ParticipantA_Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("ParticipantB_Id")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SellerUpgradeRequests");
+                    b.ToTable("Conversations");
                 });
 
             modelBuilder.Entity("SaleManagement.Entities.Item", b =>
@@ -126,6 +118,9 @@ namespace SaleManagement.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("CategoryId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Color")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -141,12 +136,19 @@ namespace SaleManagement.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("BLOB")
+                        .HasDefaultValueSql("X'00'");
+
+                    b.Property<int>("SaleCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("ShopId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("stock")
+                    b.Property<string>("Size")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Stock")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -156,6 +158,58 @@ namespace SaleManagement.Migrations
                     b.HasIndex("ShopId");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.ItemImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ItemImages");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("SaleManagement.Entities.Order", b =>
@@ -182,6 +236,9 @@ namespace SaleManagement.Migrations
                     b.Property<decimal>("ShippingFee")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ShippingProvider")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
@@ -189,6 +246,9 @@ namespace SaleManagement.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("TotalAmount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TrackingCode")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("UserId")
@@ -201,6 +261,8 @@ namespace SaleManagement.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
@@ -262,6 +324,39 @@ namespace SaleManagement.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("SaleManagement.Entities.ReturnRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ReturnRequests");
+                });
+
             modelBuilder.Entity("SaleManagement.Entities.ReviewAndRating", b =>
                 {
                     b.Property<Guid>("Id")
@@ -290,6 +385,44 @@ namespace SaleManagement.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ReviewAndRatings");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.RevokedToken", b =>
+                {
+                    b.Property<string>("Jti")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Jti");
+
+                    b.ToTable("RevokedTokens");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.SellerUpgradeRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SellerUpgradeRequests");
                 });
 
             modelBuilder.Entity("SaleManagement.Entities.Shop", b =>
@@ -322,6 +455,40 @@ namespace SaleManagement.Migrations
                     b.ToTable("Shops");
                 });
 
+            modelBuilder.Entity("SaleManagement.Entities.Transaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("RelatedOrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Transactions");
+                });
+
             modelBuilder.Entity("SaleManagement.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -331,14 +498,20 @@ namespace SaleManagement.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("Latitude")
-                        .HasColumnType("REAL");
+                    b.Property<DateTime?>("Birthday")
+                        .HasColumnType("TEXT");
 
-                    b.Property<double>("Longitude")
-                        .HasColumnType("REAL");
+                    b.Property<string>("Fullname")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Gender")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RefreshToken")
@@ -357,6 +530,59 @@ namespace SaleManagement.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.UserAddress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserAddress");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.UserViewHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ViewedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserViewHistories");
                 });
 
             modelBuilder.Entity("SaleManagement.Entities.Voucher", b =>
@@ -397,7 +623,8 @@ namespace SaleManagement.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("BLOB")
+                        .HasDefaultValueSql("X'00'");
 
                     b.Property<Guid?>("ShopId")
                         .HasColumnType("TEXT");
@@ -444,17 +671,6 @@ namespace SaleManagement.Migrations
                     b.Navigation("Requester");
                 });
 
-            modelBuilder.Entity("SaleManagement.Entities.Enums.SellerUpgradeRequest", b =>
-                {
-                    b.HasOne("SaleManagement.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SaleManagement.Entities.Item", b =>
                 {
                     b.HasOne("SaleManagement.Entities.Category", "Category")
@@ -464,12 +680,42 @@ namespace SaleManagement.Migrations
                     b.HasOne("SaleManagement.Entities.Shop", "Shop")
                         .WithMany("Items")
                         .HasForeignKey("ShopId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Category");
 
                     b.Navigation("Shop");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.ItemImage", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.Item", "Item")
+                        .WithMany("ItemImages")
+                        .HasForeignKey("ItemId");
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.Message", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.Order", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SaleManagement.Entities.OrderHistory", b =>
@@ -491,7 +737,7 @@ namespace SaleManagement.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SaleManagement.Entities.Order", null)
+                    b.HasOne("SaleManagement.Entities.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -505,7 +751,28 @@ namespace SaleManagement.Migrations
 
                     b.Navigation("Item");
 
+                    b.Navigation("Order");
+
                     b.Navigation("Shop");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.ReturnRequest", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SaleManagement.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SaleManagement.Entities.ReviewAndRating", b =>
@@ -527,6 +794,17 @@ namespace SaleManagement.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SaleManagement.Entities.SellerUpgradeRequest", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SaleManagement.Entities.Shop", b =>
                 {
                     b.HasOne("SaleManagement.Entities.User", "User")
@@ -538,11 +816,62 @@ namespace SaleManagement.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SaleManagement.Entities.Transaction", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.UserAddress", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.User", "User")
+                        .WithMany("Addresses")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.UserViewHistory", b =>
+                {
+                    b.HasOne("SaleManagement.Entities.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SaleManagement.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SaleManagement.Entities.Category", b =>
                 {
                     b.Navigation("Items");
 
                     b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.Item", b =>
+                {
+                    b.Navigation("ItemImages");
                 });
 
             modelBuilder.Entity("SaleManagement.Entities.Order", b =>
@@ -553,6 +882,11 @@ namespace SaleManagement.Migrations
             modelBuilder.Entity("SaleManagement.Entities.Shop", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("SaleManagement.Entities.User", b =>
+                {
+                    b.Navigation("Addresses");
                 });
 #pragma warning restore 612, 618
         }

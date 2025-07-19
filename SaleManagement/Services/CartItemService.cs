@@ -40,7 +40,7 @@ public class CartItemService : ICartItemService
             return CartItemResult.QuantityInvalid;
         }
 
-        if (item.stock <= 0)
+        if (item.Stock <= 0)
         {
             return CartItemResult.OutOfStock;
         }
@@ -48,7 +48,7 @@ public class CartItemService : ICartItemService
         if (itemInCart != null)
         {
             itemInCart.Quantity += request.Quantity;
-            if (itemInCart.Quantity > item.stock)
+            if (itemInCart.Quantity > item.Stock)
             {
                 return CartItemResult.InsufficientStock;
             }
@@ -56,7 +56,7 @@ public class CartItemService : ICartItemService
         }
         else
         {
-            if (item.stock < request.Quantity)
+            if (item.Stock < request.Quantity)
             {
                 return CartItemResult.InsufficientStock;
             }
@@ -100,7 +100,7 @@ public class CartItemService : ICartItemService
              return UpdateQuantityItemInCartResult.ItemNotFound;
          }
 
-         if (request.Quantity < 0)
+         if (request.Quantity < 0 || request.Quantity == null)
          {
              return UpdateQuantityItemInCartResult.QuantityInvalid;
          }

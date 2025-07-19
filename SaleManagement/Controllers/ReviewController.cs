@@ -35,7 +35,7 @@ public class ReviewController : ControllerBase
         };
     }
 
-    [HttpPost("delete_review")]
+    [HttpDelete("delete_review")]
     [Authorize(Roles = $"{nameof(UserRole.Customer)},{nameof(UserRole.Admin)}")]
     public async Task<IActionResult> DeleteReview(DeleteReviewRequest request)
     {

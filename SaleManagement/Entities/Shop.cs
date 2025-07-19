@@ -1,7 +1,9 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SaleManagement.Entities;
 
+[Table("Shops")]
 public class Shop
 {
     public Guid Id { get; set; }

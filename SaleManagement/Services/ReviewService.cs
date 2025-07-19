@@ -134,8 +134,8 @@ public class ReviewService : IReviewService
         {
             return UpdateReviewResult.RatingNotInvalid;       
         }
-        review.Rating = (int)request.Rating;
-        review.Comment = request.Comment;
+        review.Rating = request.Rating ?? review.Rating;
+        review.Comment = request.Comment ?? review.Comment;
         try
         {
             await _dbContext.SaveChangesAsync();

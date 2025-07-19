@@ -1,7 +1,8 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using SaleManagement.Entities.Enums;
 
 namespace SaleManagement.Entities;
-
+[Table("OrderHistories")]
 public class OrderHistory
 {
     public Guid Id { get; set; }

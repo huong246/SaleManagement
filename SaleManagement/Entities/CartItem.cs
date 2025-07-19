@@ -1,5 +1,8 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SaleManagement.Entities;
 
+[Table("CartItems")]
 public class CartItem
 {
     public Guid Id { get; set; }

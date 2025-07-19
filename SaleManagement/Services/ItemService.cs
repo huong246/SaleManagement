@@ -35,7 +35,7 @@ public class ItemService : IItemService
             return CreateItemResult.ShopNotFound;
         }
 
-        if (request.stock <= 0)
+        if (request.Stock <= 0)
         {
             return CreateItemResult.StockInvalid;
         }
@@ -45,15 +45,24 @@ public class ItemService : IItemService
             return CreateItemResult.PriceInvalid;
         }
 
+        if (request.CategoryId.HasValue)
+        {
+            var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == request.CategoryId);
+            if (category == null)
+            {
+                return CreateItemResult.CategoryNotFound;
+            }
+        }
         var newItem = new Item()
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             Price = request.Price,
-            stock = request.stock,
+            Stock = request.Stock,
             ShopId = shop.Id,
             Description = request.Description,
             CategoryId = request.CategoryId,
+          
         };
         try
         {
@@ -61,8 +70,14 @@ public class ItemService : IItemService
             await _dbContext.SaveChangesAsync();
             return CreateItemResult.Success;
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex)
         {
+            // Ghi lại lỗi để kiểm tra (sử dụng logger trong dự án thực tế)
+            Console.WriteLine(ex.ToString()); // Dùng để debug
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine("Inner Exception: " + ex.InnerException.Message); // Dòng này rất quan trọng!
+            }
             return CreateItemResult.DatabaseError;
         }
     }
@@ -91,31 +106,34 @@ public class ItemService : IItemService
             return UpdateItemResult.ItemNotFound;
         }
 
-        if (request.Stock != null && request.Stock < 0)
+        if (request.Stock is null or < 0)
         {
             return UpdateItemResult.StockInvalid;
         }
 
-        if (request.Price != null && request.Price < 0)
+        if (request.Price is null or < 0)
         {
             return UpdateItemResult.PriceInvalid;
         }
+        
 
         _dbContext.Entry(item).Property("RowVersion").OriginalValue = request.RowVersion;
         
-        item.Name = request.Name;
-        item.Price = (decimal)request.Price!;
-        item.stock = (int)request.Stock!;
-        item.Description = request.Description;
-        item.CategoryId = request.CategoryId;
+        item.Name = request.Name ?? item.Name;
+        item.Price = request.Price ?? item.Price;
+        item.Stock = request.Stock ?? item.Stock;
+        item.Description = request.Description ?? item.Description;
+        item.CategoryId = request.CategoryId ?? item.CategoryId;
+      
         try
         {
-            _dbContext.Items.Update(item);
+            
             await _dbContext.SaveChangesAsync();
             return UpdateItemResult.Success;
         }
         catch (DbUpdateConcurrencyException)
         {
+            
             return UpdateItemResult.ConcurrencyConflict;
         }
         catch (DbUpdateException)
@@ -138,46 +156,64 @@ public class ItemService : IItemService
         {
             return DeleteItemResult.UserNotFound;
         }
-        var shop = await _dbContext.Shops.FirstOrDefaultAsync(s => s.UserId == user.Id);
-        if (shop == null)
-        {
-            return DeleteItemResult.ShopNotFound;
-        }
+       
      
-        var item = await _dbContext.Items.FirstOrDefaultAsync(i=>i.Id == request.ItemId);
+        var item = await _dbContext.Items.FirstOrDefaultAsync(i=>i.Id == request.ItemId );
         if (item == null)
         {
             return DeleteItemResult.ItemNotFound;
         }
 
-        if (!user.UserRoles.HasFlag(UserRole.Admin) || !user.UserRoles.HasFlag(UserRole.Seller))
-        {
-            return DeleteItemResult.ShopNotFound;
-        }
-
-        else if (item.ShopId != shop.Id)
-        {
-            return DeleteItemResult.ShopNotFound;
-        }
-      
         try
+        {
+        var isAdmin = user.UserRoles.HasFlag(UserRole.Admin);
+        var isSellerAndIsUser = user.UserRoles.HasFlag(UserRole.Seller);
+        if (isAdmin)
         {
             _dbContext.Items.Remove(item);
             await _dbContext.SaveChangesAsync();
             return DeleteItemResult.Success;
         }
-       catch (DbUpdateException)
+
+        if (isSellerAndIsUser)
+        {
+            var shop = await _dbContext.Shops.FirstOrDefaultAsync(s => s.UserId == user.Id);
+            if (shop == null)
+            {
+                return DeleteItemResult.ShopNotOwner;
+            }
+
+            if (shop != null && item.ShopId == shop.Id)
+            {
+                _dbContext.Items.Remove(item);
+                await _dbContext.SaveChangesAsync();
+                return DeleteItemResult.Success;
+            }
+        }
+
+        return DeleteItemResult.UserNotPermission;
+        }
+        catch (DbUpdateException)
         {
             return DeleteItemResult.DatabaseError;
         }
+       
     }
+    
 
     public async Task<IEnumerable<Item>> SearchItem(SearchItemRequest request)
     {
         var query = _dbContext.Items.Include(i => i.Category).AsQueryable();
-        if (!string.IsNullOrEmpty(request.Keyword)) ;
+        if (!string.IsNullOrEmpty(request.Keyword)) 
         {
-            query = query.Where(i => i.Name.Contains(request.Keyword)|| i.Description.Contains(request.Keyword));
+            var searchTerm = $"\"{request.Keyword.Replace("\"", "\"\"")}\"*"; // Thêm * để tìm kiếm theo tiền tố
+             
+            var matchingItemIds = await _dbContext.Items
+                .FromSqlRaw("SELECT * FROM Items WHERE Id IN (SELECT rowid FROM ItemsFTS WHERE ItemsFTS MATCH {0})", searchTerm)
+                .Select(i => i.Id)
+                .ToListAsync();
+            
+            query = query.Where(i => matchingItemIds.Contains(i.Id));
         }
 
         if (request.CategoryId.HasValue &&request.CategoryId.Value != Guid.Empty)
@@ -193,7 +229,31 @@ public class ItemService : IItemService
         {
             query = query.Where(i => i.Price <= request.MaxPrice.Value);
         }
-        
-        return await query.ToListAsync();
+
+        if (!string.IsNullOrEmpty(request.Size))
+        {
+            query = query.Where(i => i.Size != null && i.Size.ToLower() == request.Size.ToLower());
+        }
+
+        switch (request.SortBy?.ToLower())
+        {
+            case"price_asc":
+                query = query.OrderBy(i => i.Price);
+                break;
+            case"price_desc":
+                query = query.OrderByDescending(i => i.Price);
+                break;
+            case"newest":
+                query = query.OrderByDescending(i => i.Id); 
+                break;
+            case "best_selling":
+                query = query.OrderByDescending(i => i.SaleCount);
+                break;
+            default:
+                query = query.OrderByDescending(i => i.Name);
+                break;
+          
+        }
+        return await  query.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
     }
 }

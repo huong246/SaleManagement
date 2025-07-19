@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SaleManagement.Data;
 using SaleManagement.Schemas;
 using SaleManagement.Services;
@@ -56,6 +57,20 @@ public class AccountController: ControllerBase
 
         await _accountService.LogoutAsync();
         return Ok("Logged out successfully");
+    }
+    
+    [HttpGet("transaction")]
+    [Authorize]
+    public async Task<IActionResult> GetTransaction()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    
+        var transactions = await _dbContext.Transactions
+            .Where(t => t.UserId == userId)
+            .OrderByDescending(t => t.Timestamp)
+            .ToListAsync();
+
+        return Ok(transactions);
     }
     
 }
